@@ -151,7 +151,7 @@ def evaluate(*,
             sys_label = label_set[np.argmax(predictions[0])]
             gold_label = label_set[gold_label_idx]
 
-            outf.write(f'{gold_label}\t{sys_label}\t{predictions[0]}\t{text_a}')
+            outf.write(f'{gold_label}\t{sys_label}\t{json.dumps(predictions[0].tolist())}\t{text_a}')
             if text_b is not None:
                 outf.write(f'\t{text_b}')
             outf.write('\n')
