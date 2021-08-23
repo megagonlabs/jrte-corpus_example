@@ -1,0 +1,33 @@
+---
+# yamllint disable rule:line-length
+name: ci
+
+on:  # yamllint disable-line rule:truthy
+  push:
+  pull_request:
+
+jobs:
+  pytest:
+    name: Run tests with pytest
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.7, 3.8, 3.9]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - uses: actions/cache@v2
+        with:
+          path: ~/.cache
+          key: poetry-${{ runner.os }}-python_${{ matrix.python-version }}-${{ hashFiles('**/poetry.lock') }}
+      - name: Install Poetry
+        run: |
+          pip install 'poetry==1.1.7'
+      - name: Install Dependencies
+        run: poetry install --no-interaction
+      - name: Run Tests
+        run: poetry run make pylint
