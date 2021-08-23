@@ -9,3 +9,50 @@
 
 - [train.py](train.py) is an example code to exploit [Japanese Realistic Textual Entailment Corpus](https://github.com/megagonlabs/jrte-corpus).
 - [ブログ記事: じゃらんnetに投稿された宿クチコミを用いた感情極性分析・含意関係認識の一例](https://www.megagon.ai/jp/blog/japanese-realistic-textual-entailment-corpus/)
+
+## Setup
+
+```console
+$ git clone https://github.com/megagonlabs/jrte-corpus
+$ poetry install --no-root
+```
+
+## Training
+
+```console
+$ poetry run python3 ./train.py -i ./jrte-corpus/data/pn.tsv -o ./model-pn --task pn
+$ poetry run python3 ./train.py -i ./jrte-corpus/data/rhr.tsv -o ./model-rhr --task rhr
+$ poetry run python3 ./train.py -i './jrte-corpus/data/rte.*.tsv' -o ./model-rte --task rte
+```
+
+## Serving
+
+```console
+$ poetry run transformers-cli serve --task sentiment-analysis --model ./model-pn --port 8900
+$ curl -X POST -H "Content-Type: application/json" "http://localhost:8900/forward" -d '{"inputs":["ご飯が美味しいです。", "3人で行きました。" , "部屋は狭かったです。"] }'
+{"output":[{"label":"pos","score":0.8015708923339844},{"label":"neu","score":0.47732535004615784},{"label":"neg","score":0.42699119448661804}]}
+
+$ poetry run transformers-cli serve --task sentiment-analysis --model ./model-rhr --port 8901
+$ curl -X POST -H "Content-Type: application/json" "http://localhost:8901/forward" -d '{"inputs":["ご飯が美味しいです。", "3人で行きました。"] }'
+{"output":[{"label":"yes","score":0.9653761386871338},{"label":"no","score":0.8748807907104492}]}
+
+$ poetry run transformers-cli serve --task sentiment-analysis --model ./model-rte --port 8902
+$ curl -X POST -H "Content-Type: application/json" "http://localhost:8902/forward" -d '{"inputs":[["風呂がきれいです。", "食事が美味しいです" ] , [ "暑いです。", "とても暑かった"]] }'
+{"output":[{"label":"NE","score":0.9982748627662659},{"label":"E","score":0.9790723323822021}]
+```
+
+## Evaluation
+
+```console
+$ poetry run python3 ./train.py --evaluate -i ./jrte-corpus/data/pn.tsv --base ./model-pn --task pn -o ./model-pn/evaluate_output.txt
+$ awk '{if($1==$2){ok+=1} } END{ print(ok, NR, ok/NR) }' ./model-pn/evaluate_output.txt
+464 553 0.83906
+
+$ poetry run python3 ./train.py --evaluate -i ./jrte-corpus/data/rhr.tsv --base ./model-rhr --task rhr -o ./model-rhr/evaluate_output.txt
+$ awk '{if($1==$2){ok+=1} } END{ print(ok, NR, ok/NR) } ' ./model-rhr/evaluate_output.txt
+490 553 0.886076
+
+$ poetry run python3 ./train.py --evaluate -i './jrte-corpus/data/rte.*.tsv' --base ./model-rte --task rte -o ./model-rte/evaluate_output.txt
+$ awk '{if($1==$2){ok+=1} } END{ print(ok, NR, ok/NR) } ' ./model-rte/evaluate_output.txt
+4903 5529 0.886779
+```
