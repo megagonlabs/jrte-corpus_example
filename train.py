@@ -86,7 +86,8 @@ def evaluate(*,
     test_texts_a, test_texts_b, test_labels \
         = read_data(path_data_list, 'test', task)
 
-    with path_output.open('w') as outf:
+    with path_output.open('w') as outf, \
+            torch.no_grad():
         if test_texts_b is None:
             test_texts_b = [None] * len(test_texts_a)
 
