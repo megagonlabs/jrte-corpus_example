@@ -3,8 +3,8 @@
 
 
 import argparse
-import typing
 import json
+import typing
 from pathlib import Path
 
 import numpy as np
