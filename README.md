@@ -56,3 +56,20 @@ $ poetry run python3 ./train.py --evaluate -i './jrte-corpus/data/rte.*.tsv' --b
 $ awk '{if($1==$2){ok+=1} } END{ print(ok, NR, ok/NR) } ' ./model-rte/evaluate_output.txt
 4903 5529 0.886779
 ```
+
+## Prediction
+
+```console
+$ echo -e '飯が美味しいです。\n3人で行きました。\n部屋は狭かったです。' | poetry run python3 ./train.py --predict --base ./model-pn --task pn
+pos	[0.02000473439693451, 0.9655841588973999, 0.014411096461117268]
+neu	[0.6542302370071411, 0.3007880747318268, 0.04498171806335449]
+neg	[0.12337885051965714, 0.1064520850777626, 0.7701690196990967]
+
+$ echo -e 'ご飯が美味しいです。\n3人で行きました。' | poetry run python3 ./train.py --predict --base ./model-rhr --task rhr
+yes	[0.019858278334140778, 0.9801417589187622]
+no	[0.9749531149864197, 0.02504686638712883]
+
+$  echo -e '風呂がきれいです。\t食事が美味しいです\n暑いです。\tとても暑かった' | poetry run python3 ./train.py --predict --base ./model-rte --task rte
+NE	[0.9982748031616211, 0.0017251790268346667]
+E	[0.02092761918902397, 0.9790723919868469]
+```

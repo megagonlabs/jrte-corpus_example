@@ -4,6 +4,7 @@
 
 import argparse
 import typing
+import json
 from pathlib import Path
 
 import numpy as np
@@ -68,6 +69,46 @@ def read_data(path_data_list: typing.List[Path], target: str, task: str):
     if len(labels) == 0:
         raise KeyError("No examples are given or invalid path")
     return texts_a, texts_b, labels
+
+
+def predict(*,
+            path_model: Path,
+            path_input: Path,
+            path_output: Path,
+            task: str,
+            max_length: int,
+            ):
+    label_set: typing.List[str] = TASK2LABELS[task]
+    device: str = 'cuda' if torch.cuda.is_available() else 'cpu'
+    model = AutoModelForSequenceClassification.from_pretrained(path_model).to(device)
+    model.eval()
+
+    tokenizer = AutoTokenizer.from_pretrained(path_model)
+
+    with path_output.open('w') as outf, \
+            path_input.open() as inf, \
+            torch.no_grad():
+        for line in inf:
+            if task == 'rte':
+                items = line.strip().split('\t')
+                assert len(items) == 2
+                source = tokenizer.batch_encode_plus([items],
+                                                     padding=True,
+                                                     return_tensors='pt')
+            else:
+                source = tokenizer.batch_encode_plus([line.strip()],
+                                                     padding=True,
+                                                     return_tensors='pt')
+
+            source.to(device)
+            outputs = model(
+                input_ids=source['input_ids'],
+                token_type_ids=source['token_type_ids'],
+                attention_mask=source['attention_mask'],
+            )
+            predictions = torch.nn.functional.softmax(outputs.logits, dim=-1).detach().cpu().numpy()
+            sys_label = label_set[np.argmax(predictions[0])]
+            outf.write(f'{sys_label}\t{json.dumps(predictions[0].tolist())}\n')
 
 
 def evaluate(*,
@@ -176,9 +217,8 @@ def main(*, path_data_list: typing.List[Path], path_out: Path, base: str,
 def get_opts() -> argparse.Namespace:
     default_base: str = "cl-tohoku/bert-base-japanese-v2"
     oparser = argparse.ArgumentParser()
-    oparser.add_argument("--inputs", "-i", action="append",
-                         required=True, type=Path)
-    oparser.add_argument("--output", "-o", required=True, type=Path)
+    oparser.add_argument("--inputs", "-i", action="append", type=Path)
+    oparser.add_argument("--output", "-o", default='/dev/stdout', type=Path)
     oparser.add_argument("--task", choices=["pn", "rhr", "rte"], required=True)
     oparser.add_argument("--base",
                          default=default_base)
@@ -191,6 +231,7 @@ def get_opts() -> argparse.Namespace:
     oparser.add_argument("--max_length", type=int, default=32)
 
     oparser.add_argument("--evaluate", action="store_true")
+    oparser.add_argument("--predict", action="store_true")
     return oparser.parse_args()
 
 
@@ -200,6 +241,17 @@ if __name__ == '__main__':
         evaluate(
             path_model=Path(opts.base),
             path_data_list=opts.inputs,
+            path_output=opts.output,
+            task=opts.task,
+            max_length=opts.max_length,
+        )
+    elif opts.predict:
+        if opts.inputs is None:
+            opts.inputs = [Path('/dev/stdin')]
+        assert len(opts.inputs) <= 1
+        predict(
+            path_model=Path(opts.base),
+            path_input=opts.inputs[0],
             path_output=opts.output,
             task=opts.task,
             max_length=opts.max_length,
