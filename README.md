@@ -7,4 +7,5 @@
 [![markdownlint](https://github.com/megagonlabs/jrte-corpus_example/actions/workflows/lint.yml/badge.svg)](https://github.com/megagonlabs/jrte-corpus_example/actions/workflows/lint.yml)
 [![Typos](https://github.com/megagonlabs/jrte-corpus_example/actions/workflows/typos.yml/badge.svg)](https://github.com/megagonlabs/jrte-corpus_example/actions/workflows/typos.yml)
 
-[train.py](train.py) is an example code to exploit [Japanese Realistic Textual Entailment Corpus](https://github.com/megagonlabs/jrte-corpus).
+- [train.py](train.py) is an example code to exploit [Japanese Realistic Textual Entailment Corpus](https://github.com/megagonlabs/jrte-corpus).
+- [ブログ記事: じゃらんnetに投稿された宿クチコミを用いた感情極性分析・含意関係認識の一例](https://www.megagon.ai/jp/blog/japanese-realistic-textual-entailment-corpus/)
