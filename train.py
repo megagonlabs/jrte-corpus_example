@@ -93,11 +93,9 @@ def predict(*,
                 items = line.strip().split('\t')
                 assert len(items) == 2
                 source = tokenizer.batch_encode_plus([items],
-                                                     padding=True,
                                                      return_tensors='pt')
             else:
                 source = tokenizer.batch_encode_plus([line.strip()],
-                                                     padding=True,
                                                      return_tensors='pt')
 
             source.to(device)
@@ -135,11 +133,9 @@ def evaluate(*,
         for (text_a, text_b, gold_label_idx) in zip(test_texts_a, test_texts_b, test_labels):
             if text_b is None:
                 source = tokenizer.batch_encode_plus([text_a],
-                                                     padding=True,
                                                      return_tensors='pt')
             else:
                 source = tokenizer.batch_encode_plus([[text_a, text_b]],
-                                                     padding=True,
                                                      return_tensors='pt')
             source.to(device)
             outputs = model(
@@ -168,14 +164,16 @@ def main(*, path_data_list: typing.List[Path], path_out: Path, base: str,
         = read_data(path_data_list, 'train', task)
     train_encodings = tokenizer(text=train_texts_a, text_pair=train_texts_b,
                                 truncation=True,
-                                padding=True, max_length=max_length)
+                                padding='max_length',
+                                max_length=max_length)
     train_dataset = MyDataset(train_encodings, train_labels)
 
     eval_texts_a, eval_texts_b, eval_labels \
         = read_data(path_data_list, 'dev', task)
     eval_encodings = tokenizer(text=eval_texts_a, text_pair=eval_texts_b,
                                truncation=True,
-                               padding=True, max_length=max_length)
+                               padding='max_length',
+                               max_length=max_length)
     eval_dataset = MyDataset(eval_encodings, eval_labels)
 
     training_args = TrainingArguments(
@@ -228,7 +226,7 @@ def get_opts() -> argparse.Namespace:
     oparser.add_argument("--epoch", type=int, default=3)
     oparser.add_argument("--warmup_step", type=int, default=500)
     oparser.add_argument("--weight_decay", type=float, default=0.01)
-    oparser.add_argument("--max_length", type=int, default=32)
+    oparser.add_argument("--max_length", type=int, default=48)
 
     oparser.add_argument("--evaluate", action="store_true")
     oparser.add_argument("--predict", action="store_true")

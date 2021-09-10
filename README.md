@@ -46,7 +46,7 @@ $ curl -X POST -H "Content-Type: application/json" "http://localhost:8902/forwar
 ```console
 $ poetry run python3 ./train.py --evaluate -i ./jrte-corpus/data/pn.tsv --base ./model-pn --task pn -o ./model-pn/evaluate_output.txt
 $ awk '{if($1==$2){ok+=1} } END{ print(ok, NR, ok/NR) }' ./model-pn/evaluate_output.txt
-464 553 0.83906
+463 553 0.837251
 
 $ poetry run python3 ./train.py --evaluate -i ./jrte-corpus/data/rhr.tsv --base ./model-rhr --task rhr -o ./model-rhr/evaluate_output.txt
 $ awk '{if($1==$2){ok+=1} } END{ print(ok, NR, ok/NR) } ' ./model-rhr/evaluate_output.txt
@@ -54,22 +54,22 @@ $ awk '{if($1==$2){ok+=1} } END{ print(ok, NR, ok/NR) } ' ./model-rhr/evaluate_o
 
 $ poetry run python3 ./train.py --evaluate -i './jrte-corpus/data/rte.*.tsv' --base ./model-rte --task rte -o ./model-rte/evaluate_output.txt
 $ awk '{if($1==$2){ok+=1} } END{ print(ok, NR, ok/NR) } ' ./model-rte/evaluate_output.txt
-4903 5529 0.886779
+4932 5529 0.892024
 ```
 
 ## Prediction
 
 ```console
 $ echo -e '飯が美味しいです。\n3人で行きました。\n部屋は狭かったです。' | poetry run python3 ./train.py --predict --base ./model-pn --task pn
-pos	[0.02000473439693451, 0.9655841588973999, 0.014411096461117268]
-neu	[0.6542302370071411, 0.3007880747318268, 0.04498171806335449]
-neg	[0.12337885051965714, 0.1064520850777626, 0.7701690196990967]
+pos     [0.01976804807782173, 0.9660832285881042, 0.014148728922009468]
+neu     [0.7618894577026367, 0.18750707805156708, 0.050603508949279785]
+neg     [0.08151481300592422, 0.07906448841094971, 0.8394206762313843]
 
 $ echo -e 'ご飯が美味しいです。\n3人で行きました。' | poetry run python3 ./train.py --predict --base ./model-rhr --task rhr
-yes	[0.019858278334140778, 0.9801417589187622]
-no	[0.9749531149864197, 0.02504686638712883]
+yes     [0.020516179502010345, 0.9794838428497314]
+no      [0.9730492830276489, 0.0269507747143507]
 
 $  echo -e '風呂がきれいです。\t食事が美味しいです\n暑いです。\tとても暑かった' | poetry run python3 ./train.py --predict --base ./model-rte --task rte
-NE	[0.9982748031616211, 0.0017251790268346667]
-E	[0.02092761918902397, 0.9790723919868469]
+NE      [0.9980229139328003, 0.001977113541215658]
+E       [0.02364685945212841, 0.976353108882904]
 ```
