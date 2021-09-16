@@ -91,7 +91,7 @@ def predict(*,
         for line in inf:
             if task == 'rte':
                 items = line.strip().split('\t')
-                assert len(items) == 2
+                assert len(items) == 2, f'{items}'
                 source = tokenizer.batch_encode_plus([items],
                                                      return_tensors='pt')
             else:
