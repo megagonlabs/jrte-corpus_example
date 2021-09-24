@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 # License:  Apache 2.0
-
-
 import argparse
 import json
 import typing
 from pathlib import Path
+from typing import Iterator, List, Union
 
 import numpy as np
 import torch
@@ -77,6 +76,7 @@ def predict(*,
             path_output: Path,
             task: str,
             max_length: int,
+            batch_size: int,
             ):
     label_set: typing.List[str] = TASK2LABELS[task]
     device: str = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -85,18 +85,33 @@ def predict(*,
 
     tokenizer = AutoTokenizer.from_pretrained(path_model)
 
+    def get_input(inf, batch_size: int) -> Iterator[List[Union[str, List[str]]]]:
+        rets: List[Union[str, List[str]]] = []
+        while True:
+            line: str = inf.readline()
+            if len(line) == 0:
+                break
+            text: str = line.strip()
+
+            if task == 'rte':
+                rets.append(text.split('\t', maxsplit=2))
+            else:
+                rets.append(text)
+
+            if len(rets) == batch_size:
+                yield rets
+                rets = []
+        if len(rets) != 0:
+            yield rets
+
     with path_output.open('w') as outf, \
             path_input.open() as inf, \
             torch.no_grad():
-        for line in inf:
-            if task == 'rte':
-                items = line.strip().split('\t')
-                assert len(items) == 2, f'{items}'
-                source = tokenizer.batch_encode_plus([items],
-                                                     return_tensors='pt')
-            else:
-                source = tokenizer.batch_encode_plus([line.strip()],
-                                                     return_tensors='pt')
+        for _input in get_input(inf, batch_size):
+            source = tokenizer.batch_encode_plus(_input,
+                                                 return_tensors='pt',
+                                                 padding=True,
+                                                 )
 
             source.to(device)
             outputs = model(
@@ -105,8 +120,9 @@ def predict(*,
                 attention_mask=source['attention_mask'],
             )
             predictions = torch.nn.functional.softmax(outputs.logits, dim=-1).detach().cpu().numpy()
-            sys_label = label_set[np.argmax(predictions[0])]
-            outf.write(f'{sys_label}\t{json.dumps(predictions[0].tolist())}\n')
+            for prediction_ in predictions:
+                sys_label = label_set[np.argmax(prediction_)]
+                outf.write(f'{sys_label}\t{json.dumps(prediction_.tolist())}\n')
 
 
 def evaluate(*,
@@ -230,6 +246,7 @@ def get_opts() -> argparse.Namespace:
 
     oparser.add_argument("--evaluate", action="store_true")
     oparser.add_argument("--predict", action="store_true")
+    oparser.add_argument("--bs", "--batch_size", type=int, default=1)
     return oparser.parse_args()
 
 
@@ -253,6 +270,7 @@ if __name__ == '__main__':
             path_output=opts.output,
             task=opts.task,
             max_length=opts.max_length,
+            batch_size=opts.bs,
         )
     else:
         main(path_data_list=opts.inputs, path_out=opts.output,

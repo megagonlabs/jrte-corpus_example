@@ -69,7 +69,7 @@ $ echo -e 'ご飯が美味しいです。\n3人で行きました。' | poetry r
 yes     [0.020516179502010345, 0.9794838428497314]
 no      [0.9730492830276489, 0.0269507747143507]
 
-$  echo -e '風呂がきれいです。\t食事が美味しいです\n暑いです。\tとても暑かった' | poetry run python3 ./train.py --predict --base ./model-rte --task rte
+$  echo -e '風呂がきれいです。\t食事が美味しいです\n暑いです。\tとても暑かった' | poetry run python3 ./train.py --predict --base ./model-rte --task rte --batch_size 256
 NE      [0.9980229139328003, 0.001977113541215658]
 E       [0.02364685945212841, 0.976353108882904]
 ```
