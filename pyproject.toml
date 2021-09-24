@@ -14,13 +14,25 @@ fastapi = "^0.68.0"
 unicorn = "^1.0.3"
 
 [tool.poetry.dev-dependencies]
-autopep8 = ">=1.5.4"
 flake8 = ">=3.8.4"
 isort = ">=5.6.4"
 mypy = ">=0.790"
 pydocstyle = ">=6.1.1"
 yamllint = "^1.26.2"
+black = "^21.10b0"
+pyright = "^0.0.10"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pyright]
+pythonVersion = "3.7"
+typeCheckingMode = "basic"
+
+[tool.black]
+line-length = 120
+
+[tool.isort]
+profile = "black"
+line_length = 120
