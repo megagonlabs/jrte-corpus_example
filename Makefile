@@ -10,7 +10,7 @@ TARGET_DIRS:=train.py
 flake8:
 	find *.py | xargs flake8
 pyright:
-	pyright
+	npx pyright
 black:
 	find *.py | xargs black --diff | diff /dev/null -
 isort:
