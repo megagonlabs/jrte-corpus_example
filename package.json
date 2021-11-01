@@ -1,5 +1,6 @@
 {
   "devDependencies": {
-    "markdownlint-cli": "^0.28.1"
+    "markdownlint-cli": "^0.28.1",
+    "pyright": "^1.1.184"
   }
 }
