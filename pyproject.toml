@@ -31,3 +31,9 @@ line-length = 120
 [tool.isort]
 profile = "black"
 line_length = 120
+
+[tool.pyright]
+pythonVersion = "3.8"
+typeCheckingMode = "basic"
+reportUnusedVariable = "warning"
+reportPrivateImportUsage = "information"
